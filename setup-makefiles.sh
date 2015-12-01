@@ -3,6 +3,7 @@
 vendor=huawei
 device=angler
 outdir=$ANDROID_BUILD_TOP/vendor/$vendor/$device
+outdirlite=`echo $outdir | sed "s/$(echo $ANDROID_BUILD_TOP | sed 's/\//\\\\\//g')//g" | sed 's/^\///g'`
 makefile=$outdir/$device-vendor-blobs.mk
 vendor_makefile=$outdir/device-vendor.mk
 year=`date +"%Y"`
@@ -57,7 +58,7 @@ for file in `egrep -v '(^#|^$)' $proprietary_files`; do
   fi
   file=$(echo "$file" | sed 's|^system/||')
   if [ -z "$fileflag" ]; then
-    echo "    $outdir/proprietary/$file:system/$file$lineend" >> $makefile
+    echo "    $outdirlite/proprietary/$file:system/$file$lineend" >> $makefile
   fi
   blobllist=$(echo "$blobllist"; echo "$fileflag$file")
 done
