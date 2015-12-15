@@ -148,18 +148,12 @@ for apk in `ls $outdir/proprietary/app/*/*apk`; do
   else
     signature="platform"
   fi
-  if [[ $apkmodulename = DMService ]] || [[ $apkmodulename = DMAgent ]]; then
-    dexpreopt="false"
-  else
-    dexpreopt="true"
-  fi
     (cat << EOF) >> $outdir/proprietary/app/Android.mk
 include \$(CLEAR_VARS)
 LOCAL_MODULE := $apkmodulename
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $apkmodulename/$apkname
 LOCAL_CERTIFICATE := $signature
-LOCAL_DEX_PREOPT := $dexpreopt
 LOCAL_MODULE_CLASS := APPS
 LOCAL_MODULE_SUFFIX := \$(COMMON_ANDROID_PACKAGE_SUFFIX)
 include \$(BUILD_PREBUILT)
@@ -269,18 +263,12 @@ for privapk in `ls $outdir/proprietary/priv-app/*/*apk`; do
   else
     signature="platform"
   fi
-  if [[ $privmodulename = DMService ]] || [[ $privmodulename = DMAgent ]]; then
-    dexpreopt="false"
-  else
-    dexpreopt="true"
-  fi
     (cat << EOF) >> $outdir/proprietary/priv-app/Android.mk
 include \$(CLEAR_VARS)
 LOCAL_MODULE := $privmodulename
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := $privmodulename/$privapkname
 LOCAL_CERTIFICATE := $signature
-LOCAL_DEX_PREOPT := $dexpreopt
 LOCAL_MODULE_CLASS := APPS
 LOCAL_PRIVILEGED_MODULE := true
 LOCAL_MODULE_SUFFIX := \$(COMMON_ANDROID_PACKAGE_SUFFIX)
