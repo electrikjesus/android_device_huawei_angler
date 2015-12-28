@@ -143,7 +143,7 @@ for apk in `ls $outdir/proprietary/app/*/*apk`; do
   fi
     apkname=`basename $apk`
     apkmodulename=`echo $apkname|sed -e 's/\.apk$//gi'`
-  if [[ 0 = 1 ]]; then
+  if [[ $apkmodulename = ims ]]; then
     signature="PRESIGNED"
   else
     signature="platform"
