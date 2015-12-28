@@ -11,6 +11,28 @@ year=`date +"%Y"`
 self_dir="$(dirname $(readlink -f $0))"
 proprietary_files=$self_dir/proprietary-blobs.txt
 
+should_presign()
+{
+  case $1 in
+ims|\
+CNEService|\
+TimeService|\
+DMAgent|\
+HWMMITest|\
+HwSarControlService|\
+Tycho|\
+CallStatistics|\
+ConnMO|\
+DCMO|\
+DiagMon|\
+DMService|\
+GCS|\
+HiddenMenu|\
+SprintDM) return 0;;
+*) return 1;;
+  esac
+}
+
 mkdir -p $outdir
 
 (cat << EOF) > $makefile
@@ -143,7 +165,7 @@ for apk in `ls $outdir/proprietary/app/*/*apk`; do
   fi
     apkname=`basename $apk`
     apkmodulename=`echo $apkname|sed -e 's/\.apk$//gi'`
-  if [[ $apkmodulename = ims ]]; then
+  if should_presign $apkmodulename; then
     signature="PRESIGNED"
   else
     signature="platform"
@@ -256,7 +278,7 @@ for privapk in `ls $outdir/proprietary/priv-app/*/*apk`; do
   fi
     privapkname=`basename $privapk`
     privmodulename=`echo $privapkname|sed -e 's/\.apk$//gi'`
-  if [[ 0 = 1 ]]; then
+  if should_presign $privmodulename; then
     signature="PRESIGNED"
   else
     signature="platform"
