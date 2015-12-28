@@ -143,7 +143,7 @@ for apk in `ls $outdir/proprietary/app/*/*apk`; do
   fi
     apkname=`basename $apk`
     apkmodulename=`echo $apkname|sed -e 's/\.apk$//gi'`
-  if [[ $apkmodulename = VZWAPNLib ]]; then
+  if [[ 0 = 1 ]]; then
     signature="PRESIGNED"
   else
     signature="platform"
@@ -256,9 +256,7 @@ for privapk in `ls $outdir/proprietary/priv-app/*/*apk`; do
   fi
     privapkname=`basename $privapk`
     privmodulename=`echo $privapkname|sed -e 's/\.apk$//gi'`
-  if [[ $privmodulename = BuaContactAdapter || $privmodulename = MotoSignatureApp ||
-      $privmodulename = TriggerEnroll || $privmodulename = TriggerTrainingService ||
-      $privmodulename = VZWAPNService ]]; then
+  if [[ 0 = 1 ]]; then
     signature="PRESIGNED"
   else
     signature="platform"
