@@ -15,20 +15,7 @@ should_presign()
 {
   case $1 in
 ims|\
-CNEService|\
-TimeService|\
-DMAgent|\
-HWMMITest|\
-HwSarControlService|\
-Tycho|\
-CallStatistics|\
-ConnMO|\
-DCMO|\
-DiagMon|\
-DMService|\
-GCS|\
-HiddenMenu|\
-SprintDM) return 0;;
+qcrilmsgtunnel) return 0;;
 *) return 1;;
   esac
 }
