@@ -266,11 +266,7 @@ for privapk in `ls $outdir/proprietary/priv-app/*/*apk`; do
   fi
     privapkname=`basename $privapk`
     privmodulename=`echo $privapkname|sed -e 's/\.apk$//gi'`
-  if should_presign $privmodulename; then
-    signature="PRESIGNED"
-  else
-    signature="platform"
-  fi
+  signature="PRESIGNED"
     (cat << EOF) >> $outdir/proprietary/priv-app/Android.mk
 include \$(CLEAR_VARS)
 LOCAL_MODULE := $privmodulename
