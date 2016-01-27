@@ -14,8 +14,6 @@ proprietary_files=$self_dir/proprietary-blobs.txt
 should_presign()
 {
   case $1 in
-Tycho|\
-CNEService|\
 ims|\
 qcrilmsgtunnel) return 0;;
 *) return 1;;

@@ -26,11 +26,6 @@ vendor/lib64/libimsmedia_jni.so:system/app/ims/lib/arm64/libimsmedia_jni.so
 vendor/lib64/libimsmedia_jni.so:system/lib64/libimsmedia_jni.so
 vendor/lib/libimsmedia_jni.so:system/app/ims/lib/arm/libimsmedia_jni.so
 vendor/lib/libimsmedia_jni.so:system/lib/libimsmedia_jni.so
--system/app/CABLService/CABLService.apk
--system/app/DMAgent/DMAgent.apk
--system/app/HwMMITest/HwMMITest.apk
-system/lib64/libManufacture.so:system/app/HwMMITest/lib/arm64/libManufacture.so
--system/app/HwSarControlService/HwSarControlService.apk
 -system/app/qcrilmsgtunnel/qcrilmsgtunnel.apk
 -system/app/TimeService/TimeService.apk
 system/bin/ATFWD-daemon
@@ -111,12 +106,10 @@ system/etc/gps.conf
 system/etc/izat.conf
 system/etc/lowi.conf
 system/etc/permissions/cneapiclient.xml
-system/etc/permissions/com.android.omadm.service.xml
 system/etc/permissions/com.google.widevine.software.drm.xml
 system/etc/permissions/qcrilhook.xml
 system/etc/pp_calib_data_SAMSUNG_S6E3HA3X01_5P7_1440P_CMD_DUAL0.xml
 system/etc/sap.conf
-system/etc/sysconfig/whitelist_com.android.omadm.service.xml
 system/framework/com.google.widevine.software.drm.jar
 system/framework/qcrilhook.jar
 system/lib64/hw/gps.msm8994.so
@@ -132,9 +125,7 @@ system/lib/hw/camera.msm8994.so
 system/lib/hw/gps.msm8994.so
 system/lib/hw/nfc_nci.angler.so
 system/lib/libdmengine.so
-system/lib/libdmengine.so:system/priv-app/DMService/lib/arm/libdmengine.so
 system/lib/libdmjavaplugin.so
-system/lib/libdmjavaplugin.so:system/priv-app/DMService/lib/arm/libdmjavaplugin.so
 system/lib/libgps.utils.so
 system/lib/libloc_api_v02.so
 system/lib/libloc_core.so
@@ -146,12 +137,5 @@ system/lib/libmm-qcamera.so
 system/lib/libqomx_core.so
 system/lib/libtinyxml.so
 system/lib/soundfx/libfmas.so
--system/priv-app/CallStatistics/CallStatistics.apk
 -system/priv-app/CNEService/CNEService.apk
--system/priv-app/ConnMO/ConnMO.apk
--system/priv-app/DCMO/DCMO.apk
--system/priv-app/DiagMon/DiagMon.apk
--system/priv-app/DMService/DMService.apk
--system/priv-app/HiddenMenu/HiddenMenu.apk
--system/priv-app/SprintDM/SprintDM.apk
 system/xbin/wlutil

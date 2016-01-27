@@ -79,14 +79,17 @@ function oat2dex(){
     return 0
   fi
 
-  mkdir -p $tmpdir/dexout
-  for x in "`dirname $file`/oat/arm/`basename $file ."${file##*.}"`.odex" "`dirname $file`/oat/arm64/`basename $file ."${file##*.}"`.odex"; do
-    [ ! -e "$x" ] && continue
-    java -jar "$baksmali_jar" -x -o "$tmpdir/dexout" -c boot.oat -d "$tmpdir/system/framework/arm64" -d "$mpdir/system/framework/arm" "$x"
-    ls -l $tmpdir/dexout | wc -l
+  for arch in arm64 arm; do
+    mkdir -p $tmpdir/dexout
+    for x in "`dirname $file`/oat/$arch/`basename $file ."${file##*.}"`.odex"; do
+      [ ! -e "$x" ] && continue
+      java -jar "$baksmali_jar" -x -o "$tmpdir/dexout" -c boot.oat -d "$tmpdir/system/framework/arm64" -d "$mpdir/system/framework/arm" "$x"
+      echo "oat2dex: ${file}: ${arch}: `ls -l $tmpdir/dexout | wc -l`"
+    done
+    java -jar "$smali_jar" "$tmpdir/dexout" -o "$tmpdir/classes.dex"
+    rm -rf "$tmpdir/dexout"
+    [ -e "$tmpdir/classes.dex" ] && return 0
   done
-  java -jar "$smali_jar" "$tmpdir/dexout" -o "$tmpdir/classes.dex"
-  rm -rf "$tmpdir/dexout"
 }
 
 function unpack_factory(){
