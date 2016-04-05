@@ -2,10 +2,10 @@
 
 vendor=huawei
 device=angler
-build=mhc19i
+build=mhc19q
 
-factory_url=https://dl.google.com/dl/android/aosp/angler-mhc19i-factory-fb2128bf.tgz
-factory_md5=4b3cf6cdbc07191ffc8c68fc0956526d
+factory_url=https://dl.google.com/dl/android/aosp/angler-mhc19q-factory-f5a4e7a1.tgz
+factory_md5=ba587fa71dc9517b1458f03da49205a1
 
 
 self_dir="$(dirname $(readlink -f $0))"
