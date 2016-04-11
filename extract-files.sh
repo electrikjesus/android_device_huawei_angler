@@ -1,175 +1,88 @@
 #!/bin/bash -e
 
-vendor=huawei
-device=angler
-build=mhc19q
+export VENDOR=huawei
+export DEVICE_VENDOR=huawei
+export DEVICE=angler
+export PROPRIETARY_FILES=proprietary-blobs.txt
 
-factory_url=https://dl.google.com/dl/android/aosp/angler-mhc19q-factory-f5a4e7a1.tgz
-factory_md5=ba587fa71dc9517b1458f03da49205a1
+TMPDIR="/tmp/extractfiles.$$"
+mkdir "$TMPDIR"
 
+# relative to SMALIBASE defined by 2nd cli arg to this script
+SMALIJAR=smali/build/libs/smali.jar
+BAKSMALIJAR=baksmali/build/libs/baksmali.jar
 
-self_dir="$(dirname $(readlink -f $0))"
-proprietary_files=$self_dir/proprietary-blobs.txt
-device_base=$ANDROID_BUILD_TOP/vendor/$vendor/$device/proprietary
+COPY_FROM="$1"
+SMALIBASE="$2"
 
-function md5verify(){
-  local md5=$1
-  local file=$2
-  md5sum --quiet -c <( echo "$md5 $file" )
-  if [ $? -ne 0 ]; then
-    echo "$file failed MD5 hash check"
-    return 1
-  fi
+function oat2dex()
+{
+    OFILE="$1"
+
+    OAT="`dirname $OFILE`/oat/arm64/`basename $OFILE ."${OFILE##*.}"`.odex"
+    if [ ! -e "$OAT" ]; then
+        return 0
+    fi
+
+    java -jar "$SMALIBASE/$BAKSMALIJAR" -x -o "$TMPDIR/dexout" -c boot.oat -d "$COPY_FROM/system/framework/arm64" "$OAT"
+    java -jar "$SMALIBASE/$SMALIJAR" "$TMPDIR/dexout" -o "$TMPDIR/classes.dex"
+    rm -rf "$TMPDIR/dexout"
 }
 
-function fetch(){
-  local url=$1
-  local md5=$2
-  local cachedir=$ANDROID_BUILD_TOP/.fetchcache # need a better location
-  local outfile=$cachedir/${url##*/}
+function extract() {
+    OUTBASE="$2"
+    for FILE in $(egrep -v '(^#|^$)' $1); do
+        echo "Extracting $FILE ..."
+        OLDIFS=$IFS IFS=":" PARSING_ARRAY=($FILE) IFS=$OLDIFS
+        SRCFILE=$(echo ${PARSING_ARRAY[0]} | sed -e "s/^-//g")
+        DESTFILE=${PARSING_ARRAY[1]}
+        if [ -z "$DESTFILE" ]; then
+            DESTFILE="$SRCFILE"
+        fi
+        DESTFILE=$(echo "$DESTFILE" | sed 's|^system/||')
+        DESTDIR=$(dirname "$DESTFILE")
+        if [ ! -d "$OUTBASE/$DESTDIR" ]; then
+            mkdir -p "$OUTBASE/$DESTDIR"
+        fi
 
-  mkdir -p $cachedir
+        cp "$COPY_FROM/$SRCFILE" "$OUTBASE/$DESTFILE"
 
-  if [ ! -f $outfile ]; then
-    wget "$url" -O "$outfile"
-  fi
-  if md5verify "$md5" "$outfile"; then
-    echo $outfile
-  else
-    rm $outfile
-    fetch $url $md5
-  fi
-}
-
-function checkutils() {
-  local utils="$@"
-  for util in $utils; do
-	  echo -n " * Checking for $util..."
-	  which $util 2>&1 > /dev/null
-	  if [ $? -eq 0 ]; then
-		printf " ok!\n";
-	  else
-		printf " not found!\n";
-		exit 1;
-	  fi
-  done
-}
-
-function build_smali(){
-  local outdir="$1"
-  rm -rf $outdir
-  git clone https://github.com/JesusFreke/smali $outdir
-  cd $outdir
-  ./gradlew build
-  cd -
-}
-
-function oat2dex(){
-  local file="$1"
-  local tmpdir="$2"
-
-  local smali_jar=$tmpdir/smali/smali/build/libs/smali.jar
-  local baksmali_jar=$tmpdir/smali/baksmali/build/libs/baksmali.jar
-
-  if [ ! -f "$smali_jar" ]; then
-    build_smali "$tmpdir/smali"
-  fi
-
-  if [ ! -e "`dirname $file`/oat/arm/`basename $file ."${file##*.}"`.odex" ] && [ ! -e "`dirname $file`/oat/arm64/`basename $file ."${file##*.}"`.odex" ]; then
-    return 0
-  fi
-
-  for arch in arm64 arm; do
-    mkdir -p $tmpdir/dexout
-    for x in "`dirname $file`/oat/$arch/`basename $file ."${file##*.}"`.odex"; do
-      [ ! -e "$x" ] && continue
-      java -jar "$baksmali_jar" -x -o "$tmpdir/dexout" -c boot.oat -d "$tmpdir/system/framework/arm64" -d "$mpdir/system/framework/arm" "$x"
-      echo "oat2dex: ${file}: ${arch}: `ls -l $tmpdir/dexout | wc -l`"
+        # Fixup xml files
+        if [[ "$OUTBASE/$DESTFILE" =~ .xml$ ]]; then
+            xmlheader=$(grep '^<?xml version' "$OUTBASE/$DESTFILE")
+            grep -v '^<?xml version' "$OUTBASE/$DESTFILE" > "$OUTBASE/$DESTFILE".temp
+            (echo "$xmlheader"; cat "$OUTBASE/$DESTFILE".temp ) > "$OUTBASE/$DESTFILE"
+            rm "$OUTBASE/$DESTFILE".temp
+        fi
+        if [[ "$DESTFILE" =~ .(apk|jar)$ ]]; then
+            oat2dex "$COPY_FROM/$SRCFILE"
+            if [ -e "$TMPDIR/classes.dex" ]; then
+                zip -gjq "$OUTBASE/$DESTFILE" "$TMPDIR/classes.dex"
+                rm "$TMPDIR/classes.dex"
+                echo "Updated $OUTBASE/$DESTFILE from odex files"
+            fi
+        fi
     done
-    java -jar "$smali_jar" "$tmpdir/dexout" -o "$tmpdir/classes.dex"
-    rm -rf "$tmpdir/dexout"
-    [ -e "$tmpdir/classes.dex" ] && return 0
-  done
 }
 
-function unpack_factory(){
-  local factory_url=$1
-  local factory_md5=$2
-  local outdir=$3
-  local factory_file=$(fetch "$factory_url" "$factory_md5")
-  local device=$(basename $factory_file | sed 's/\(^\w\+\).*/\1/g')
-  local build=$(basename $factory_file | sed 's/^\w\+-\([a-z0-9]\+\)-.*/\1/g')
+DEVICE_BASE="../../../vendor/$VENDOR/$DEVICE/proprietary"
+rm -rf "$DEVICE_BASE"/*
 
-  mkdir -p $outdir/extracted
+# if we're being sourced, return early
+return 0 || true
 
-  tar -C "$outdir" -xvzf "$factory_file"
+# Only supports extract from filesystem
+if [[ "$#" -ne 2 || ! -d "$1/vendor" || ! -d "$1/system" || ! -f "$2/$SMALIJAR" || ! -f "$2/$BAKSMALIJAR" ]]; then
+    echo "Usage: $0 <path to root dir of extracted filesystem> <smali base dir for git clone https://github.com/JesusFreke/smali> >"
+    echo "  root dir must contain at least system and vendor directions"
+    echo "  smali base must contain built jar objects (within smali base run: ./gradew build)"
+    exit 1
+fi
 
-  unzip  -d $outdir -o $outdir/$device-$build/image-$device-${build}.zip
+# Extract the device specific files
+extract "../../$DEVICE_VENDOR/$DEVICE/$PROPRIETARY_FILES" "$DEVICE_BASE"
 
-  for image in system vendor; do
-    simg2img $outdir/${image}.img $outdir/${image}.ext4.img
-	mkdir -p $outdir/${image}_mount
+# clean temp dir
+rm -rf "$TMPDIR"
 
-	# I really hate using sudo here but I see no other choice
-	# Any other ideas to extract these are welcome
-	sudo mount -o loop $outdir/${image}.ext4.img $outdir/${image}_mount
-	sudo cp -r $outdir/${image}_mount $outdir/$image
-    sudo umount $outdir/${image}_mount
-    sudo rm -rf $outdir/${image}_mount
-    sudo chown -R $USER $outdir/${image}
-  done
-
-}
-
-function extract(){
-  local factory_url=$1
-  local factory_md5=$2
-  local proprietary_files=$3
-  local outbase=$4
-  local tmpdir="/tmp/extract-files/$device/$build"
-
-  mkdir -p $4
-  mkdir -p $tmpdir
-
-  unpack_factory "$factory_url" "$factory_md5" "$tmpdir"
-
-  for file in $(egrep -v '(^#|^$)' $proprietary_files); do
-      echo "Extracting $file ..."
-      oldifs=$IFS IFS=":" parsing_array=($file) IFS=$oldifs
-      srcfile=$(echo ${parsing_array[0]} | sed -e "s/^-//g")
-      destfile=${parsing_array[1]}
-      if [ -z "$destfile" ]; then
-          destfile="$srcfile"
-      fi
-      destfile=$(echo "$destfile" | sed 's|^system/||')
-      destdir=$(dirname "$destfile")
-      if [ ! -d "$outbase/$destdir" ]; then
-          mkdir -p "$outbase/$destdir"
-      fi
-
-      cp "$tmpdir/$srcfile" "$outbase/$destfile"
-
-      # Fixup xml files
-      if [[ "$outbase/$destfile" =~ .xml$ ]]; then
-          xmlheader=$(grep '^<?xml version' "$outbase/$destfile")
-          grep -v '^<?xml version' "$outbase/$destfile" > "$outbase/$destfile".temp
-          (echo "$xmlheader"; cat "$outbase/$destfile".temp ) > "$outbase/$destfile"
-          rm "$outbase/$destfile".temp
-      fi
-      if [[ "$destfile" =~ .(apk|jar)$ ]]; then
-          oat2dex "$tmpdir/$srcfile" $tmpdir
-          if [ -e "$tmpdir/classes.dex" ]; then
-              zip -gjq "$outbase/$destfile" "$tmpdir/classes.dex"
-              rm "$tmpdir/classes.dex"
-              echo "Updated $outbase/$destfile from odex files"
-          fi
-      fi
-  done
-
-}
-
-checkutils simg2img unzip md5sum sudo wget
-
-extract "$factory_url" "$factory_md5" "$proprietary_files" "$device_base"
-
-bash $self_dir/setup-makefiles.sh
+./setup-makefiles.sh
