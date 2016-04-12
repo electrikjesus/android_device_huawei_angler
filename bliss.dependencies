@@ -4,7 +4,7 @@
    "repository": "android_kernel_huawei_angler",
    "target_path": "kernel/huawei/angler",
    "revision": "cm-13.0"
- }
+ },
  {
    "remote": "github",
    "repository": "TheMuppets/proprietary_vendor_huawei",
