@@ -3,9 +3,9 @@
 vendor=$VENDOR
 device=$DEVICE
 
-build=mhc19q
-factory_url=https://dl.google.com/dl/android/aosp/angler-mhc19q-factory-f5a4e7a1.tgz
-factory_md5=ba587fa71dc9517b1458f03da49205a1
+build=mtc19t
+factory_url=https://dl.google.com/dl/android/aosp/angler-mtc19t-factory-1ad31a27.tgz
+factory_md5=aa2aec8e58f8996d455568be5579e46d
 
 
 self_dir="$(dirname $(readlink -f $0))"
