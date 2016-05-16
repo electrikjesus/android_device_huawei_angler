@@ -313,8 +313,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 # Low latency audio buffer size in frames
 PRODUCT_PROPERTY_OVERRIDES += \
-    audio_hal.period_size=192 \
-    audio.offload.pcm.24bit.enable=true
+    audio_hal.period_size=192
 
 #for qcom modify fluence type name, here added and enable
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -330,7 +329,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 
 #stereo speakers: orientation changes swap L/R channels
 PRODUCT_PROPERTY_OVERRIDES += \
-    ro.audio.monitorRotation=false
+    ro.audio.monitorRotation=true
 
 # low audio flinger standby delay to reduce power consumption
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -356,7 +355,8 @@ PRODUCT_PACKAGES += \
 
 # limit dex2oat threads to improve thermals
 PRODUCT_PROPERTY_OVERRIDES += \
-    dalvik.vm.dex2oat-threads=4 \
+    dalvik.vm.boot-dex2oat-threads=4 \
+    dalvik.vm.dex2oat-threads=2 \
     dalvik.vm.image-dex2oat-threads=4
 
 # Modem debugger
