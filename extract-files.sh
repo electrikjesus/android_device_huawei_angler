@@ -12,15 +12,6 @@ mkdir "$TMPDIR"
 SMALIJAR=smali/build/libs/smali.jar
 BAKSMALIJAR=baksmali/build/libs/baksmali.jar
 
-# Only supports extract from filesystem
-
-if [[ "$#" -ne 2 || ! -d "$1/vendor" || ! -d "$1/system" || ! -f "$2/$SMALIJAR" || ! -f "$2/$BAKSMALIJAR" ]]; then
-    echo "Usage: $0 <path to root dir of extracted filesystem> <smali base dir for git clone https://github.com/JesusFreke/smali> >"
-    echo "  root dir must contain at least system and vendor directions"
-    echo "  smali base must contain built jar objects (within smali base run: ./gradew build)"
-    exit 1
-fi
-
 COPY_FROM="$1"
 SMALIBASE="$2"
 
@@ -76,6 +67,17 @@ function extract() {
 
 DEVICE_BASE="../../../vendor/$VENDOR/$DEVICE/proprietary"
 rm -rf "$DEVICE_BASE"/*
+
+# if we're being sourced, return early
+return 0 || true
+
+# Only supports extract from filesystem
+if [[ "$#" -ne 2 || ! -d "$1/vendor" || ! -d "$1/system" || ! -f "$2/$SMALIJAR" || ! -f "$2/$BAKSMALIJAR" ]]; then
+    echo "Usage: $0 <path to root dir of extracted filesystem> <smali base dir for git clone https://github.com/JesusFreke/smali> >"
+    echo "  root dir must contain at least system and vendor directions"
+    echo "  smali base must contain built jar objects (within smali base run: ./gradew build)"
+    exit 1
+fi
 
 # Extract the device specific files
 extract "../../$DEVICE_VENDOR/$DEVICE/$PROPRIETARY_FILES" "$DEVICE_BASE"
